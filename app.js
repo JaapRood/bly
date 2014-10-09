@@ -1,14 +1,19 @@
 var Hoek = require('hoek');
 var Events = require('events');
-var Dispatcher = require('flux').Dispatcher;
+var Dispatcher = require('./dispatcher');
 var _ = require('lodash');
+var util = require('util');
 
 var internals = {};
 
 exports = module.exports = internals.App = function() {
 	Hoek.assert(this.constructor === internals.App, 'App must be instantiated using new');
 
-	this.dispatcher = new Dispatcher();
+	// we're an event emitter
+	Event.EventEmitter.call(this);
+
+	this._dispatcher = new Dispatcher();
+	this._started = false;
 };
 
 
@@ -19,8 +24,8 @@ internals.App.prototype.action = function(configs) {
 
 	configs = _.isArray(configs) ? configs : [configs];
 
-	var dispatcher = this.dispatcher;
-	var tokens = _.map(configs, function registerAction(config) {
+	var dispatcher = this._dispatcher;
+	_.each(configs, function registerAction(config) {
 		Hoek.assert(config.handler, 'Missing handler for action configuration:', config);
 		Hoek.assert(config.name, 'Missing name for actio configuration:', config);
 
@@ -30,13 +35,34 @@ internals.App.prototype.action = function(configs) {
 		dispatcher.register(config.handler);
 	});
 
-	if (tokens.length === 1) {
-		return tokens.pop();
-	} else {
-		return tokens;
-	}
+	return this;
 };
 
-internals.App.prototype.render = function() {};
+util.inherits(internals.App, Events.EventEmitter);
 
-internals.App.prototype.start = function() {};
+internals.App.prototype.render = function(renderFn) {
+	return this.on('onPostDispatch', renderFn);
+};
+
+internals.App.prototype.start = function() {
+	if (this._started) return;
+
+	this._started = true;
+
+	return this;
+};
+
+internals.App.prototype.inject = function(action, payload) {
+	Hoek.assert(this._started, "Actions can't be injected until the app is started"); // maybe queue until start?
+	Hoek.assert(action, "Action is required to dispatch an action");
+
+	payload = payload || {};
+
+	this.emit('onPreDispatch');
+
+	this._dispatcher.dispatch(action, payload);
+
+	this.emit('onPostDispatch', this);
+
+	return this;
+};
