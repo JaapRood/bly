@@ -11,8 +11,9 @@ exports = module.exports = internals.Dispatcher = function Dispatcher() {
 	this._pendingPayload = null;
 	this._pendingAction = null;
 
-	// bind invoke handler to dispatcher for convenience
+	// bind some methods for convenience
 	this.invokeHandler = this.invokeHandler.bind(this);
+	this.waitFor = this.waitFor.bind(this);
 };
 
 interals.Dispatcher.prototype.register = function(action, handler, name) {
@@ -132,7 +133,7 @@ internals.Dispatcher.prototype.stopDispatching = function() {
 internals.Dispatcher.prototype.invokeHandler = function(handler, name) {
 	this._isPending[name] = true;
 
-	handler(waitFor, this._pendingPayload);
+	handler(this.waitFor, this._pendingPayload);
 	this._isHandled[name] = true;
 };
 
