@@ -109,3 +109,34 @@ test('Dispatcher#unregister', function(t) {
 		dispatcher.unregister(action, name);
 	}, 'unregister with action and name');
 });
+
+test('Dispatcher#dispatch - invoke handler', function(t) {
+	t.plan(3);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+
+	dispatcher.register(action, function(waitFor, payload) {
+		t.equals(arguments.length, 2, "invoke handler with 2 arguments");
+		t.equals(typeof waitFor, 'function', "waitFor function as 1st arg")	;
+		t.equals(typeof payload, 'object', "payload object as 2nd arg");
+	});
+
+	dispatcher.dispatch(action);
+});
+
+test('Dispatcher#dispatch - one action at the time', function(t) {
+	t.plan(1);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+
+	dispatcher.register(action, function(waitFor, payload) {
+		t.throws(function() {
+			dispatcher.dispatch(action);
+		}, 'No dispatching of actions while already dispatching an action');
+	});
+
+	dispatcher.dispatch(action);
+
+});
