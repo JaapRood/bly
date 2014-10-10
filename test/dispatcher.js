@@ -138,5 +138,78 @@ test('Dispatcher#dispatch - one action at the time', function(t) {
 	});
 
 	dispatcher.dispatch(action);
+});
 
+test('Dispatcher#waitFor - let one handler wait for the other', function(t) {
+	t.plan(4);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+	var calledHandlers = [];
+
+	var handlerOne = dispatcher.register(action, function(waitFor, payload) {
+		t.doesNotThrow(function() {
+			waitFor(handlerTwo);
+		}, 'Handlers can wait on other handlers');
+		calledHandlers.push(handlerOne);
+	});
+
+	var handlerTwo = dispatcher.register(action, function(waitFor, payload) {
+		calledHandlers.push(handlerTwo);
+	});
+
+	dispatcher.dispatch(action);
+
+	t.equals(calledHandlers.length, 2, 'Both handlers should be called');
+	t.equals(calledHandlers[0], handlerTwo, 'Handler one should have waited for handler two');
+	t.equals(calledHandlers[1], handlerOne, 'Handler one should have waited for handler two');
+});
+
+test('Dispatcher#waitFor - detect circular dependancies between handlers', function(t) {
+	t.plan(1);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+
+	var handlerOne = dispatcher.register(action, function(waitFor, payload) {
+		waitFor(handlerTwo);
+	});
+
+	var handlerTwo = dispatcher.register(action, function(waitfor, payload) {
+		t.throws(function() {
+			waitFor(handlerOne);
+		}, "Can't have to handlers waiting on each other");
+	});
+
+	dispatcher.dispatch(action);
+});
+
+test('Dispatcher#waitFor - only waiting for existing handlers', function(t) {
+	t.plan(1);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+
+	var handlerOne = dispatcher.register(action, function(waitFor, payload) {
+		t.throws(function() {
+			waitFor('does-not-exist');
+		}, "Can't wait for handlers that aren't registered");
+	});
+
+	dispatcher.dispatch(action);
+});
+
+test('Dispatcher#isDispatching', function(t) {
+	t.plan(3);
+
+	var action = 'EAT';
+	var dispatcher = new Dispatcher();
+
+	dispatcher.register(action, function(waitFor, payload) {
+		t.ok(dispatcher.isDispatching(), 'Dispatching in handlers');
+	});
+
+	t.ok(!dispatcher.isDispatching(), 'Not dispatching until we do');
+	dispatcher.dispatch(action);
+	t.ok(!dispatcher.isDispatching(), 'Dispatching is synchronous');
 });
