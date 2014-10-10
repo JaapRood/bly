@@ -26,6 +26,7 @@ test('Dispatcher#register - it throws when arguments for are missing', function(
 
 	t.doesNotThrow(function() {
 		dispatcher.register('EAT', emptyFn, 'handler-name');
+
 	}, "Should not throw when all arguments correct");
 });
 
@@ -47,6 +48,15 @@ test('Dispatcher#register - it throws in name conflicts', function(t) {
 		dispatcher.register(action, emptyFn, 'kerk');
 		dispatcher.register('EAT_BURGERS', emptyFn, 'kerk');
 	}, "Handlers can have the same name if registered for different action");
+});
+
+test('Dispatcher#register - it should the name of the registered handler', function(t) {
+	t.plan(2);
+
+	var dispatcher = new Dispatcher();
+
+	t.equals(typeof dispatcher.register('EAT', emptyFn), 'string');
+	t.equals(dispatcher.register('EAT', emptyFn, 'burgers'), 'burgers');
 });
 
 test('Dispatcher#unregister', function(t) {
