@@ -16,21 +16,52 @@ test('App - plugin interface', function(t) {
 		action: Joi.func(),
 		render: Joi.func(),
 		inject: Joi.func(),
-		register: Joi.func()
+		register: Joi.func(),
+		expose: Joi.func()
 	});
 
-	var plugin = {
+	var dinnerPlugin = {
 		name: 'dinner',
 
 		register: function(plugin, options, next) {
-			console.log(plugin);
-
 			t.doesNotThrow(function() {
 				Joi.assert(plugin, pluginSchema);
 			}, 'Plugin interface has the expected schema');
 		}
 	}
 
-	app.register(plugin, emptyFn);
+	app.register(dinnerPlugin, emptyFn);
 
+});
+
+test('Plugin#expose', function(t) {
+	t.plan(5);
+
+	var app = new App();
+
+	var dinnerPlugin = {
+		name: 'dinner',
+
+		register: function(plugin, options, next) {
+
+			t.throws(function() {
+				plugin.expose();
+			}, 'key must be specified');
+
+			t.doesNotThrow(function() {
+				plugin.expose('eat');
+				plugin.expose('drink', 'it-all');
+			});
+
+			next();
+		}
+	};
+
+	app.register(dinnerPlugin, function(err) {
+
+		t.equals(typeof app.plugins.dinner, 'object', 'Dinner plugin must be available on app.plugins');
+		t.equals(typeof app.plugins.dinner.eat, 'undefined', 'No value passed means undefined key');
+		t.equals(app.plugins.dinner.drink, 'it-all', 'Exposed values are available under app.plugins[name][key]');
+
+	});
 });
