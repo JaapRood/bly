@@ -10,7 +10,7 @@ test('App#register - registers plugin', function(t) {
 
 	var app = new App();
 
-	var plugin = {
+	var dinnerPlugin = {
 		name: 'dinner',
 
 		register: function(plugin, options, next) {
@@ -23,7 +23,7 @@ test('App#register - registers plugin', function(t) {
 	};
 
 	t.doesNotThrow(function() {
-		app.register(plugin, function(err) {
+		app.register(dinnerPlugin, function(err) {
 			t.error(err, 'No errors passed when registering successful');
 		});
 	}, 'Plugins can be registered');
@@ -78,7 +78,7 @@ test('App#register - passing options to plugin register function', function(t) {
 		courses: 5
 	};
 
-	var plugin = {
+	var dinnerPlugin = {
 		name: 'dinner',
 		register: function(plugin, options, next) {
 
@@ -90,7 +90,7 @@ test('App#register - passing options to plugin register function', function(t) {
 
 	t.doesNotThrow(function() {
 		app.register({
-			plugin: plugin,
+			plugin: dinnerPlugin,
 			options: pluginOptions
 		}, emptyFn);
 	}, "Can register with object containing plugin definition and options");
