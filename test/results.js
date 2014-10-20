@@ -70,3 +70,27 @@ test('App#results - reports make it to render', function(t) {
 	app.start();
 	app.inject('test');
 });
+
+test('App#results - results get to render when render defined later', function(t) {
+	t.plan(2);
+
+	var app = new App();
+
+	app.results(function(report) {
+		report('je', 'weetzelf');
+	});
+
+	app.action({
+		name: 'test',
+		handler: emptyFn
+	});
+
+	app.start();
+	app.inject('test');
+
+	app.render(function(results) {
+		t.equals(typeof results, 'object', 'results object passed to later defined render method');
+
+		t.equals(results.je, 'weetzelf');
+	});
+});
