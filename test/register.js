@@ -45,7 +45,7 @@ test('App#register - callback for registering is required', function(t) {
 });
 
 test('App#register - plugin definitions', function(t) {
-	t.plan(3);
+	t.plan(4);
 
 	var app = new App();
 
@@ -66,6 +66,14 @@ test('App#register - plugin definitions', function(t) {
 			register: emptyRegisterFn
 		}, emptyFn);
 	}, 'Plugin definition requires name');
+
+	t.doesNotThrow(function() {
+		var fnPlugin = function() {};
+		fnPlugin.register = emptyRegisterFn;
+		fnPlugin.pluginName = 'function-based-plugin';
+
+		app.register(fnPlugin, emptyFn);
+	});
 });
 
 test('App#register - passing options to plugin register function', function(t) {
