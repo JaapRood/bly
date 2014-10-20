@@ -13,11 +13,14 @@ test('App - plugin interface', function(t) {
 	var pluginSchema = Joi.object().keys({
 		bly: Joi.object(),
 		version: Joi.string().regex(/^(\d+\.\d+\.\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/i),
+		
+		// methods
 		action: Joi.func(),
-		render: Joi.func(),
+		expose: Joi.func(),
 		inject: Joi.func(),
 		register: Joi.func(),
-		expose: Joi.func()
+		render: Joi.func(),
+		stores: Joi.func()
 	});
 
 	var dinnerPlugin = {
