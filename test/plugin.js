@@ -21,6 +21,7 @@ test('App - plugin interface', function(t) {
 		inject: Joi.func(),
 		register: Joi.func(),
 		render: Joi.func(),
+		results: Joi.func(),
 		stores: Joi.func()
 	});
 
