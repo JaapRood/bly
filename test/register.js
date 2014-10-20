@@ -204,3 +204,26 @@ test('App#register - registering multiple plugins at a time', function(t) {
 
 	}, "Array of plugin definitions can be used to register multiple plugins in series");
 });
+
+test('App#register - plugins can register plugins', function(t) {
+	t.plan(1);
+
+	var app = new App();
+
+	var dinnerPlugin = {
+		name: 'dinner',
+		register: emptyRegisterFn
+	};
+
+	var mealsPlugin = {
+		name: 'meals',
+		register: function(plugin, options, next) {
+
+			t.doesNotThrow(function() {
+				plugin.register(dinnerPlugin, next);
+			});
+		}
+	}
+
+	app.register(mealsPlugin, emptyFn);
+});
