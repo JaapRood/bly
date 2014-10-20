@@ -16,6 +16,7 @@ test('App - plugin interface', function(t) {
 		
 		// methods
 		action: Joi.func(),
+		after: Joi.func(),
 		expose: Joi.func(),
 		inject: Joi.func(),
 		register: Joi.func(),
@@ -66,5 +67,37 @@ test('Plugin#expose', function(t) {
 		t.equals(typeof app.plugins.dinner.eat, 'undefined', 'No value passed means undefined key');
 		t.equals(app.plugins.dinner.drink, 'it-all', 'Exposed values are available under app.plugins[name][key]');
 
+	});
+});
+
+test('Plugin#after', function(t) {
+	t.plan(3);
+
+	var app = new App();
+
+	var afterCalled = false;
+
+	var dinnerPlugin = {
+		name: 'dinner',
+
+		register: function(plugin, options, next) {
+			
+			t.doesNotThrow(function() {
+				plugin.after(function() {
+					afterCalled = true;
+				});
+			}, 'Plugin can register function to be ran after app starts');
+
+			next();
+		}
+	};
+
+	app.register(dinnerPlugin, function(err) {
+
+		t.notOk(afterCalled, 'After function not called after before starting app');
+
+		app.start();
+
+		t.ok(afterCalled, 'After function called after app started');
 	});
 });
