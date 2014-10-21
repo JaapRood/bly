@@ -17,12 +17,17 @@
     "frontend",
     "isomorphic"
   ],
+  "homepage": "https://github.com/JaapRood/bly",
   "author": {
     "name": "Jaap van Hardeveld",
     "email": "jaap@jaaprood.nl",
     "url": "http://jaaprood.nl"
   },
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/JaapRood/bly.git"
+  },
   "devDependencies": {
     "joi": "^4.7.0",
     "tap-spec": "^1.0.1",
