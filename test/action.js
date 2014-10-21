@@ -4,13 +4,9 @@ var _ = require('lodash');
 
 var emptyFn = function() {};
 
-var app;
-function newApp() {
-	app = new App();
-};
 
 test('App#action', function(t) {
-	newApp();
+	var app = new App();
 
 	t.plan(6);
 
@@ -59,7 +55,7 @@ test('App#action', function(t) {
 test('App#action - handler refs', function(t) {
 	t.plan(4);
 
-	newApp();
+	var app = new App();
 
 	var action = 'EAT',
 		ref;
@@ -86,7 +82,7 @@ test('App#action - handler refs - conflicts', function(t) {
 
 	t.plan(2);
 
-	newApp();
+	var app = new App();
 
 	app.action({
 		name: 'EAT',
