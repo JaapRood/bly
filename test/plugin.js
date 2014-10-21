@@ -1,43 +1,43 @@
 var test = require('tape');
 var App = require('../lib/app');
 var _ = require('lodash');
-var Joi = require('joi');
+// var Joi = require('joi');
 
 var emptyFn = function() {};
 
-test('App - plugin interface', function(t) {
-	t.plan(1);
+// test('App - plugin interface', function(t) {
+// 	t.plan(1);
 
-	var app = new App();
+// 	var app = new App();
 
-	var pluginSchema = Joi.object().keys({
-		bly: Joi.object(),
-		version: Joi.string().regex(/^(\d+\.\d+\.\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/i),
+// 	var pluginSchema = Joi.object().keys({
+// 		bly: Joi.object(),
+// 		version: Joi.string().regex(/^(\d+\.\d+\.\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/i),
 		
-		// methods
-		action: Joi.func(),
-		after: Joi.func(),
-		expose: Joi.func(),
-		inject: Joi.func(),
-		register: Joi.func(),
-		render: Joi.func(),
-		results: Joi.func(),
-		stores: Joi.func()
-	});
+// 		// methods
+// 		action: Joi.func(),
+// 		after: Joi.func(),
+// 		expose: Joi.func(),
+// 		inject: Joi.func(),
+// 		register: Joi.func(),
+// 		render: Joi.func(),
+// 		results: Joi.func(),
+// 		stores: Joi.func()
+// 	});
 
-	var dinnerPlugin = {
-		name: 'dinner',
+// 	var dinnerPlugin = {
+// 		name: 'dinner',
 
-		register: function(plugin, options, next) {
-			t.doesNotThrow(function() {
-				Joi.assert(plugin, pluginSchema);
-			}, 'Plugin interface has the expected schema');
-		}
-	}
+// 		register: function(plugin, options, next) {
+// 			t.doesNotThrow(function() {
+// 				Joi.assert(plugin, pluginSchema);
+// 			}, 'Plugin interface has the expected schema');
+// 		}
+// 	}
 
-	app.register(dinnerPlugin, emptyFn);
+// 	app.register(dinnerPlugin, emptyFn);
 
-});
+// });
 
 test('Plugin#expose', function(t) {
 	t.plan(5);
