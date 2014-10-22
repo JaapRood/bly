@@ -66,6 +66,167 @@ app.start();
 
 Especially the **keeping it that way** is important, as that's where I see a lot of approaches go down the drain. If in any way possible I highly favour approaches that will make my codebase grow linearly relative to the complexity of the app. There are plenty of frameworks / architectures out there that are very clean and easy to start off with, but as soon as you step outside the bounds of it, doing anything becomes very complex. It should be relatively easily to get started, but more importantly, it should be easy to keep going.
 
-# API reference
+# API
 
-Working on this.. pull request anyone?
+## App interface
+
+### `var app = new App()`
+
+Create a new Bly App, of which generally one should exist. If you find yourself passing the app object around alot, consider using plugins to organise your code instead.
+
+```js
+var Bly = require('bly');
+var app = new Bly.App();
+```
+
+### `var ref = app.action(options)`
+
+Adds an action handler where:
+
+- `options` - the action options object.
+
+Returns a reference (string) to which to identify this handler with.
+
+#### Action options
+
+- `name` - (required) the name of the action, the identifying string. For example `RECEIVE_MESSAGES`. Can already be used before to register other handlers.
+- `handler` - (required) a function with the signature `function (waitFor, payload)` used to generate the state mutations in stores. 
+	- `waitFor` - a function passed to a handler which allows it to wait for other handlers using their reference. This is **synchronous**:
+		```js
+			function(waitFor, payload) {
+				// do something
+
+				waitFor('otherHandler');
+
+				// continue doing things
+			}
+		```
+	- `payload` - an object that represents the payload of the action.
+- `ref` - an optional reference for this particular handler, which other handlers can use to `waitFor` this handler. Defaults to be randomly generated.
+
+```js
+app.action({
+	name: 'RECEIVE_MESSAGES',
+	handler: function(waitFor, payload) {
+		waitFor('other-handler');
+
+		// do things
+	}
+});
+
+app.action({
+	name: 'RECEIVE_MESSAGES',
+	ref: 'other-handler'
+	handler: function(waitFor, payload) {
+		// do other things
+	}
+});
+```
+
+### `var refs = app.action(actions)`
+
+Same as `var ref = app.action(options)` but where `actions` is an array of Action options. Returns an array of references to the handlers registered.
+
+### `app.inject(action, payload)`
+
+Inject an action into the system to be dispatched. The dispatching of an action is *synchronous* and only one action can be dispatched at a time. App has to be started with `app.start` before actions can be injected.
+
+- `action` - (required) the name of the action you want to inject. For example `RECEIVE_MESSAGES`.
+- `payload` - the payload of the action, can be any value. Defaults to an empty object `{}`
+
+```js
+var app = new Bly.App();
+
+app.action({
+	name: 'RECEIVE_MESSAGES',
+	handler: myActionHandler
+});
+
+app.start();
+
+app.inject('RECEIVE_MESSAGES');
+
+```
+
+#### Injected action lifecycle
+
+Each injected action goes through a pre-defined life cycle constrained by the ideas of a Flux architecture.
+
+- `onPreDispatch` event emitted.
+- action dispatched to handlers registered with `app.action` or `plugin.action`.
+- results gathered from any functions registered with `app.results` or `plugin.results`.
+- render functions registered with `app.render` called with the gathered results.
+- `onPostDispatch` event emitted with the gathered results.
+
+
+### `app.register(plugins, [options,] callback)`
+
+Register one or more plugins.
+
+- `plugins` - (required) a plugin object or array of plugin objects, either manually constructed or plugin module.
+- `options` - optional options for registering, used by **Bly** to register the plugin and not passed to the plugin. Currently there are no options available, but reserved for future use.
+- `callback` - (required) function with signature `function(err)` to be called once plugins have registered or failed to do so.
+
+#### Register plugin object
+
+To register a plugin this object is (or array of objects are) required containing the following:
+
+- `pluginName` or `name` - (required) name of the plugin, which must be unique. If using a module, using the name of the package is a pretty solid way to ensure it is doesn't conflict with others. `pluginName` can be used if the plugin object is a function to prevent conflicts with `Function.name`.
+- `multiple` - a boolean that indicates whether a plugin can be registered more than once. For safety defaults to `false`.
+- `register` - (required) a function with signature `function(plugin, options, next)` that is responsible for registering the plugin
+
+#### Passing options to plugin's register function
+
+To pass options to the plugin's register function, wrap the plugin object into an object containing:
+
+- `plugin` - (required) plugin object
+- `options` - object of options to be passed to the **plugin**
+
+
+### `app.results(resultFn)`
+
+Register a function with signature `function(report)` that allow for values to be passed to `app.render` functions. Proven to be especially useful for rendering individual sections of apps in plugins, which can then be stitched together during the actual rendering of the app.
+
+- `resultFn` - function with signature `function(report)` where:
+	`report` - function with signature `function(key, value)` used to expose results using a where:
+		`key` - (required) string by which made accessible on `results` object
+		`value` - value to be exposed on `results object`
+
+
+### `app.render(renderFunction)`
+
+Register a function that is to be called with the results of each dispatched actions, which is most useful for rendering your views to reflect the possible state changes made by the stores. If the app was started before registering the render function the render function will be called once straight away.
+
+- `renderFunction` - (required) function with signature `function(results)` where:
+	- `results` - object with results generated by functions registered with `app.results`
+
+### `app.start()`
+
+Start the app. For now this basically means actions can from then on be injected, in order to make sure all plugins and stores had a chance to set themselves up in working order. Would also be the point where in the future we can add more safety regarding the correct configuration of an app, like validating that stores are only listening for actions that the system knows off.
+
+
+### `var store = app.stores(storeName)`
+
+Retrieve a reference to a store instance
+
+- `storeName` - name of the store to retrieve the instance for.
+
+### `var stores = app.stores()`
+
+Retrieve a reference to the the global stores object, which contains all stores instance indexed by storeName.
+
+### `app.stores(storeName, instance)`
+
+Register a store instance to be available to the rest of the app.
+
+- `storeName` - (required) name of the store it can be referenced by.
+- `instance` - (required) value which represents your store instance.
+
+
+### `app.stores(storeMap [, options])`
+
+Set an entire object of store instances at once, indexed by store names.
+
+- `storeMap` - (required) object of store instances, indexed by store names.
+- `options` - object of options containing any of the following:
+	- `merge` - whether to merge the store map with the existing register of stores instead of completely replacing it. Defaults to `true`.
