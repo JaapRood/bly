@@ -158,6 +158,9 @@ Each injected action goes through a pre-defined life cycle constrained by the id
 - render functions registered with `app.render` called with the gathered results.
 - `onPostDispatch` event emitted with the gathered results.
 
+### `app.plugins`
+
+Object where each key is a plugin name and the value are the exposed properties by that plugin using `plugin.expose()`.
 
 ### `app.register(plugins, [options,] callback)`
 
@@ -165,7 +168,7 @@ Register one or more plugins.
 
 - `plugins` - (required) a plugin object or array of plugin objects, either manually constructed or plugin module.
 - `options` - optional options for registering, used by **Bly** to register the plugin and not passed to the plugin. Currently there are no options available, but reserved for future use.
-- `callback` - (required) function with signature `function(err)` to be called once plugins have registered or failed to do so.
+- `callback` - (required) function with signature `function(err)` to be called once plugins have registered or failed to do so. **Failure to register should be considered an unrecoverable event**.
 
 #### Register plugin object
 
@@ -230,3 +233,90 @@ Set an entire object of store instances at once, indexed by store names.
 - `storeMap` - (required) object of store instances, indexed by store names.
 - `options` - object of options containing any of the following:
 	- `merge` - whether to merge the store map with the existing register of stores instead of completely replacing it. Defaults to `true`.
+
+
+## Plugin interface
+
+Plugins, inspired by [Hapi's plugins](http://hapijs.com/api#plugin-interface) provide a way to organise your application's business logic, as well as extend apps with general purpose utilities (allthough many of the hooks for the latter still have to be discovered / determined). At the present it mostly enables you to think of your app as composition of various logical units, each covering their own domains, instead of one monolothic app.
+
+A plugin consists of:
+
+- `name` - (required) the plugin name used as an unique key to identify the plugin. When publishing plugins on npm it's a good idea to use their package name as name of the plugin in order to prevent conflicts.
+- `register` - (required) single entry point into the plugin's functionality. This is where a plugin declares what it should be doing.
+- `multiple` - a boolean that indicates whether a plugin can be registered more than once. For safety defaults to `false`.
+
+Example of a plugin implementing a very simple store.
+
+```js
+
+exports.name = 'messages';
+
+exports.register = function(plugin, options, next) {
+	var messages = [];
+
+	plugin.action({
+		name: 'RECEIVE_MESSAGE',
+		handler: function(waitFor, message) {
+			messages.push(message);
+		}
+	});
+
+	plugin.stores('messages', messages);
+
+	next();
+}
+
+```
+
+### `register(plugin, options, next)`
+
+Register the plugin where:
+
+- `plugin` - the registration interface to the app.
+- `options` - options object passed in `app.register`.
+- `next` - function with signature `function(err)` which should be called once registration of the plugin is complete. While this allows for asynchronous registration it also means that if `next` is never called, the app will not configure itself properly. Any errors passed *should be considered unrecoverable events* and *should trigger application termination*.
+
+### `plugin.bly`
+
+A reference to the `Bly` module used to create the app, so the plugin doesn't need to have `Bly` as a dependency itself.
+
+### `plugin.version`
+
+The version the `Bly` module used.
+
+### `plugin.action(options)`
+
+Adds a handler for an action as described by `app.action`
+
+### `plugin.after(afterFunction)`
+
+Adds a function to be called after the app was started.
+
+- `afterFunction` - (required) function which will be executed after the app starts (no arguments passed)
+
+### `plugin.expose(key, value)`
+
+Exposes a property to the `app.plugins[pluginName]` object.
+
+- `key` - (required) the key for which to expose the value
+- `value`
+
+### `plugin.inject(action, payload)`
+
+Inject an action into the app to be dispatched as described by `app.inject`.
+
+### `plugin.register(plugins, [options ,], callback)`
+
+Register plugins with this app as described by `app.register`.
+
+### `plugin.render(renderFn)`
+
+Register a function that is to be called with the results of each dispatched actions. As described by `app.render`.
+
+### `plugin.results(resultsFn)`
+
+Register a function with signature `function(report)` that allow for values to be passed to `app.render` functions. As described by `app.results`.
+
+### `plugin.stores(...)`
+
+Interface to setting and getting store as described by `app.stores`.
