@@ -1,6 +1,6 @@
 {
   "name": "bly",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Flux app framework with hapi like interface",
   "main": "index.js",
   "directories": {
