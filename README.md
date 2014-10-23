@@ -74,6 +74,12 @@ The [bly-react-mixin](https://github.com/JaapRood/bly-react-mixin) module is the
 
 The rendering on every dispatched action really comes into it's own when used with immutable stores. Combining state defined with something like [immutable-js](https://github.com/facebook/immutable-js) with a simple shouldComponentUpdate implementation can make for efficient rendering of Bly apps.
 
+# Examples
+
+Bly is still pretty experimental and not used in many places yet. The best example is [an experimental repo](https://github.com/JaapRood/flux-experiments-chat) in which the idea and first code of Bly was developed, which is a port of Facebook's chat example. It also features stores written with [immutable-js](https://github.com/facebook/immutable-js) and rendering with [[React](http://reactjs.org).
+
+Built anything? Add it here and send a pull request!
+
 # API
 
 ## App interface
