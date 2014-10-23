@@ -50,7 +50,7 @@ app.action({
 app.render(function() {
 	React.renderComponent({
 		App({
-			stores: stores
+			bly: app
 		});
 	})	
 });
@@ -65,6 +65,14 @@ app.start();
 **Making it easier to create great UI's and app experiences for the end user, and keeping it that way through the course of the project**. That's the most important thing; if I can't imagine how something would actually benefit the end user I probably won't put it in. This doesn't mean that these benefits can sometimes be quite indirect. For example, if something just greatly simplifies the developing experience on my side, that'll make it easier for me to be creative, try different things, pay attention to details, feel happy about my project. All of which I believe in the end contribute to the quality of the final product.
 
 Especially the **keeping it that way** is important, as that's where I see a lot of approaches go down the drain. If in any way possible I highly favour approaches that will make my codebase grow linearly relative to the complexity of the app. There are plenty of frameworks / architectures out there that are very clean and easy to start off with, but as soon as you step outside the bounds of it, doing anything becomes very complex. It should be relatively easily to get started, but more importantly, it should be easy to keep going.
+
+# Using with React
+
+Bly and [React](http://reactjs.org) make for a really good couple, it's what Bly was designed with in mind. 
+
+The [bly-react-mixin](https://github.com/JaapRood/bly-react-mixin) module is the glue to their relationship, letting you access stores and dispatch actions from your React components.
+
+The rendering on every dispatched action really comes into it's own when used with immutable stores. Combining state defined with something like [immutable-js](https://github.com/facebook/immutable-js) with a simple shouldComponentUpdate implementation can make for efficient rendering of Bly apps.
 
 # API
 
