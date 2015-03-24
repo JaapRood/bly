@@ -77,7 +77,7 @@ test('App#register - plugin definitions', function(t) {
 });
 
 test('App#register - passing options to plugin register function', function(t) {
-	t.plan(2);
+	t.plan(3);
 
 	var app = new App();
 
@@ -102,6 +102,17 @@ test('App#register - passing options to plugin register function', function(t) {
 			options: pluginOptions
 		}, emptyFn);
 	}, "Can register with object containing plugin definition and options");
+
+	t.doesNotThrow(function() {
+		var fnPlugin = function() {};
+		fnPlugin.register = emptyRegisterFn;
+		fnPlugin.pluginName = 'acceptable-name';
+
+		app.register({
+			plugin: fnPlugin,
+			options: pluginOptions
+		}, emptyFn);
+	}, "When passing a function plugin the pluginName prop is required");
 });
 
 test('App#register - registering same plugin multiple times', function(t) {
