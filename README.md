@@ -141,11 +141,11 @@ app.action({
 
 Same as `var ref = app.action(options)` but where `actions` is an array of Action options. Returns an array of references to the handlers registered.
 
-### app.inject(action, payload)
+### app.inject(name, payload)
 
 Inject an action into the system to be dispatched. The dispatching of an action is *synchronous* and only one action can be dispatched at a time. App has to be started with `app.start` before actions can be injected.
 
-- `action` - (required) the name of the action you want to inject. For example `RECEIVE_MESSAGES`.
+- `name` - (required) the name of the action you want to inject. For example `RECEIVE_MESSAGES`.
 - `payload` - the payload of the action, can be any value. Defaults to an empty object `{}`
 
 ```js
@@ -159,6 +159,61 @@ app.action({
 app.start();
 
 app.inject('RECEIVE_MESSAGES');
+
+```
+
+### app.inject(actionObject)
+
+Same as `app.inject(name, payload)` but but with the `name` and `payload` arguments as props of an object. 
+
+```js
+var app = new Bly.App();
+
+app.action({
+	name: 'RECEIVE_MESSAGES',
+	handler: myActionHandler
+});
+
+app.start();
+
+app.inject({
+	name: 'RECEIVE_MESSAGES'
+});
+
+```
+
+### app.inject(actionCreator)
+
+Functions, often referred to as 'action creators' in Flux lingo, are a great way to compose and orchestrate the injection of actions, especially when dealing with asynchronous code. When passing one to app.inject, it will be called with an instance of app, allowing the action creators to be decoupled from the app more easily. This article on [the evolution of flux frameworks](https://medium.com/@dan_abramov/the-evolution-of-flux-frameworks-6c16ad26bb31) describes the pattern quite well.
+
+- `actionCreator` - (required) a function with signature `function(app)`, the returned value of which will be fed back into `app.inject(actionObject)`. If nothing is returned no further action is taken.
+
+```js
+var app = new Bly.App();
+
+app.action({
+	name: 'RECEIVE_MESSAGES',
+	handler: myActionHandler
+});
+
+app.start();
+
+var saveMessage = function(message) {
+	return function(appInstance) {
+		message.save(function(err, savedMessage) {
+			if (err) return;
+
+			appInstance.inject({
+				name: 'RECEIVE_MESSAGES',
+				payload: [savedMessage]
+			});
+		});
+	};
+};
+
+var newMessage = new Message();
+
+app.inject(saveMessage(newMessage));
 
 ```
 
