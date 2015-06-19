@@ -28,6 +28,40 @@ test('App#inject', function(t) {
 	});
 });
 
+test('App#inject - accepts object with name and payload instead of string', function(t) {
+	t.plan(4);
+
+	var app = new App();
+	var action = 'EAT';
+	var actionPayload = { type: 'food' };
+
+	app.action({
+		name: action,
+		handler: function(waitFor, payload) {
+			t.deepEquals(payload, actionPayload, 'Payload is passed on');
+		}
+	});
+
+	app.start();
+
+	t.throws(function() {
+		app.inject({});
+	}, 'Object passed to inject must contain name of action');
+
+	t.throws(function() {
+		app.inject({
+			name: {}
+		});
+	}, 'Name of action must be a string');
+
+	t.doesNotThrow(function() {
+		app.inject({
+			name: action,
+			payload: actionPayload
+		});
+	}, 'Accepts an object with the name of action as a prop');
+});
+
 test('App#inject - one action at a time', function(t) {
 	t.plan(1);
 
