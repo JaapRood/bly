@@ -156,3 +156,39 @@ test('App#inject - only waiting for existing handlers', function(t) {
 	app.start();
 	app.inject(action);
 });
+
+test('App#inject - accepts function which will be called with an instance of app', function(t) {
+	t.plan(5);
+
+	var action = 'EAT';
+	var app = new App();
+
+	app.action({
+		name: action,
+		handler: function(waitFor, payload) {
+			t.ok('Handler called');
+		}
+	});
+
+	app.start();
+
+	t.doesNotThrow(function() {
+		app.inject(function(appInstance) {
+			t.equals(app, appInstance, 'Functions passed to app.inject get called with instance of app');
+		});
+	}, 'Can call app.inject with a function that returns nothing');
+
+	t.doesNotThrow(function() {
+		app.inject(function(appInstance) {
+			return {
+				name: action
+			};
+		});
+	}, 'Can call with app.inject with a function that returns valid argument for app.inject');
+
+	t.throws(function() {
+		app.inject(function(appInstance) {
+			return 'this-should-throw';
+		});
+	}, 'What function returns must be a valid 1st argument for app.inject');
+});
